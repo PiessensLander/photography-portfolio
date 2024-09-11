@@ -1,16 +1,24 @@
-import Hero from "@/components/hero";
-import ConnectSupabaseSteps from "@/components/tutorial/connect-supabase-steps";
-import SignUpUserSteps from "@/components/tutorial/sign-up-user-steps";
-import { hasEnvVars } from "@/utils/supabase/check-env-vars";
+import { createClient } from "@/utils/supabase/server";
+import Link from "next/link";
 
 export default async function Index() {
-  return (
-    <>
-      <Hero />
-      <main className="flex-1 flex flex-col gap-6 px-4">
-        <h2 className="font-medium text-xl mb-4">Next steps</h2>
-        {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
-      </main>
-    </>
-  );
+  const supabase = createClient();
+
+  const { data, error } = await supabase.from('collections').select('*');
+
+  if (data) {
+    return (
+      <>
+        <main className="flex-1 flex flex-col gap-6 px-4">
+          {data.map((collection) => (
+            <Link key={collection.id} href={`/collections/${collection.slug}`}>
+              <h2 className="text-2xl font-bold">{collection.name}</h2>
+            </Link>
+          ))}
+        </main>
+      </>
+    );
+  }
+
+  return <div>Error: {error.message}</div>;
 }
